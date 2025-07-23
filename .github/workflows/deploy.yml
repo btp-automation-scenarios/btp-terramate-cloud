@@ -37,10 +37,13 @@ jobs:
 
       - name: List changed stacks
         id: list
-        run: terramate list --changed
+        run: |
+          terramate list --changed > changed-stacks.txt
+          echo "CHANGEDSTACKS=$(awk 'END { print NR }' changed-stacks.txt)" >> $GITHUB_OUTPUT
+          rm -rf changed-stacks.txt
 
       - name: Run Terraform init in each changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS > 0
         id: init
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
@@ -54,7 +57,7 @@ jobs:
             terraform init
 
       - name: Create Terraform plan on changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS > 0
         id: plan
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
@@ -68,7 +71,7 @@ jobs:
             terraform plan -lock-timeout=5m -out out.tfplan
 
       - name: Apply planned changes on changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS > 0
         id: apply
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
@@ -86,7 +89,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run drift detection
-        if: steps.list.outputs.stdout && ! cancelled() && steps.apply.outcome != 'skipped'
+        if: steps.list.outputs.CHANGEDSTACKS > 0 && ! cancelled() && steps.apply.outcome != 'skipped'
         id: drift
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}

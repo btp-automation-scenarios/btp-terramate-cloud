@@ -44,6 +44,7 @@ resource "btp_subaccount_security_settings" "sec_setting" {
   access_token_validity = 7200
   iframe_domains_list = [
     "https://www.sap.com",
+    "https://www.help.sap.com",
   ]
   refresh_token_validity                   = 7200
   subaccount_id                            = btp_subaccount.project.id
