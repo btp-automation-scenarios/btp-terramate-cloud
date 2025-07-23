@@ -82,7 +82,7 @@ generate_hcl "_terramate_generated_variables.tf" {
           group  = "SAP HANA Cloud"
           type   = "service"
           name   = "hana-cloud"
-          plan   = tm_ternary(tm_contains(terramate.stack.tags, "dev"), "free", "hana")
+          plan   = tm_ternary(tm_contains(terramate.stack.tags, "dev"), "hana-free", "hana")
           amount = null
         },
         {

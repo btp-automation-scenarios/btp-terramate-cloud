@@ -66,7 +66,7 @@ variable "entitlements" {
       amount = null
       group  = "SAP HANA Cloud"
       name   = "hana-cloud"
-      plan   = "free"
+      plan   = "hana-free"
       type   = "service"
     },
     {
