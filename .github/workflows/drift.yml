@@ -1,0 +1,65 @@
+name: Scheduled Terraform Drift Detection
+
+on:
+  workflow_dispatch:
+#  schedule:
+#    - cron: '0 2 * * *'
+
+jobs:
+  drift-detection:
+    name: Check Drift
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Install Terramate
+        uses: terramate-io/terramate-action@v2
+        with:
+         use_wrapper: "false"
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+          terraform_wrapper: false
+
+      - name: Initialize Terraform
+        id: init
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+           --parallel 1 \
+           -- \
+           terraform init -lock-timeout=5m
+
+      - name: Run drift detection
+        id: drift
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+          --sync-drift-status \
+          --terraform-plan-file=drift.tfplan \
+          --continue-on-error \
+          --parallel 5 \
+          -- \
+          terraform plan -out drift.tfplan -detailed-exitcode -lock=false
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

@@ -1,0 +1,105 @@
+name: Terraform Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Terraform changes in changed Terramate stacks
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Install Terramate
+        uses: terramate-io/terramate-action@v2
+        with:
+         use_wrapper: "false"
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+          terraform_wrapper: false
+
+      - name: List changed stacks
+        id: list
+        run: terramate list --changed
+
+      - name: Run Terraform init in each changed stacks
+        if: steps.list.outputs.stdout
+        id: init
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 1 \
+            --changed \
+            -- \
+            terraform init
+
+      - name: Create Terraform plan on changed stacks
+        if: steps.list.outputs.stdout
+        id: plan
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 5 \
+            --changed \
+            -- \
+            terraform plan -lock-timeout=5m -out out.tfplan
+
+      - name: Apply planned changes on changed stacks
+        if: steps.list.outputs.stdout
+        id: apply
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 5 \
+            --changed \
+            --sync-deployment \
+            --terraform-plan-file=out.tfplan \
+            -- \
+            terraform apply -input=false -auto-approve -lock-timeout=5m out.tfplan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run drift detection
+        if: steps.list.outputs.stdout && ! cancelled() && steps.apply.outcome != 'skipped'
+        id: drift
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 5 \
+            --changed \
+            --continue-on-error \
+            --sync-drift-status \
+            --terraform-plan-file=drift.tfplan \
+            -- \
+            terraform plan -out drift.tfplan -detailed-exitcode
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
