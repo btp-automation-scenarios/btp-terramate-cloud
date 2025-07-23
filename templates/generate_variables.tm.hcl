@@ -94,5 +94,27 @@ generate_hcl "_terramate_generated_variables.tf" {
         }
       ]
     }
+
+    variable "account_name" {
+      description = "The name of the storage account used for state storage"
+      type        = string
+      sensitive   = true
+      ephemeral   = true
+    }
+
+    variable "container_name" {
+      description = "The name of the container used for state storage"
+      type        = string
+      sensitive   = true
+      ephemeral   = true
+    }
+
+    variable "sas_token" {
+      description = "The name of the sas token used for state storage"
+      type        = string
+      sensitive   = true
+      ephemeral   = true
+    }
+
   }
 }

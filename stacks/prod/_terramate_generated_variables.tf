@@ -87,3 +87,21 @@ variable "entitlements" {
     amount = number
   }))
 }
+variable "account_name" {
+  description = "The name of the storage account used for state storage"
+  ephemeral   = true
+  sensitive   = true
+  type        = string
+}
+variable "container_name" {
+  description = "The name of the container used for state storage"
+  ephemeral   = true
+  sensitive   = true
+  type        = string
+}
+variable "sas_token" {
+  description = "The name of the sas token used for state storage"
+  ephemeral   = true
+  sensitive   = true
+  type        = string
+}

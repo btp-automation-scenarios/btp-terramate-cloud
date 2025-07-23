@@ -8,6 +8,12 @@ terraform {
       version = "~> 1.15.0"
     }
   }
+  backend "azurerm" {
+    container_name       = var.container_name
+    key                  = "e33fa601-cf67-41d4-96da-44622337e308.btptm.terraform.state"
+    sas_token            = var.sas_token
+    storage_account_name = var.account_name
+  }
 }
 provider "btp" {
   globalaccount = var.globalaccount
