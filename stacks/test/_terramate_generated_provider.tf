@@ -9,10 +9,9 @@ terraform {
     }
   }
   backend "azurerm" {
-    container_name       = var.container_name
+    container_name       = "sapcp-osaas-b8c39866-3cdb-4448-9128-7a7e85102e66-zrs"
     key                  = "e33fa601-cf67-41d4-96da-44622337e308.btptm.terraform.state"
-    sas_token            = var.sas_token
-    storage_account_name = var.account_name
+    storage_account_name = "sapcpnjc8cwjshgjsjfsswtl"
   }
 }
 provider "btp" {

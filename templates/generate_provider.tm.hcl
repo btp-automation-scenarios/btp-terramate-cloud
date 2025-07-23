@@ -11,9 +11,8 @@ generate_hcl "_terramate_generated_provider.tf" {
       }
       backend "azurerm" {
         # Using Object Storage on SAP BTP - Only SAS Token is available
-        sas_token            = var.sas_token
-        storage_account_name = var.account_name
-        container_name       = var.container_name
+        storage_account_name = "sapcpnjc8cwjshgjsjfsswtl"
+        container_name       = "sapcp-osaas-b8c39866-3cdb-4448-9128-7a7e85102e66-zrs"
         key                  = "${terramate.stack.id}.btptm.terraform.state"
 
       }
