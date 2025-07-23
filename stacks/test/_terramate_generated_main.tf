@@ -1,7 +1,14 @@
 // TERRAMATE: GENERATED AUTOMATICALLY DO NOT EDIT
 
-resource "btp_directory" "parent" {
-  description = "This is the parent directory for ${var.unit} - testing."
+locals {
+  project_subaccount_cf_org = replace(join("", [
+    "${var.unit}",
+    "${local.project_subaccount_domain}",
+  ]), " ", "")
+  project_subaccount_domain = replace(lower(replace("${local.project_subaccount_name}", "_", "-")), " ", "")
+  project_subaccount_name   = "${var.unit_shortname}_TST"
+}
+resource "btp_subaccount" "project" {
   labels = {
     "architect" = [
       "${var.architect}",
@@ -16,19 +23,27 @@ resource "btp_directory" "parent" {
       "${var.team}",
     ]
   }
-  name = "${var.unit}-testing"
+  name      = local.project_subaccount_name
+  region    = lower(var.region)
+  subdomain = local.project_subaccount_domain
+  usage     = "USED_FOR_PRODUCTION"
 }
-module "project_setup" {
-  architect           = var.architect
-  costcenter          = var.costcenter
-  emergency_admins    = var.emergency_admins
-  owner               = var.owner
-  parent_directory_id = btp_directory.parent.id
-  region              = var.region
-  source              = "github.com/btp-automation-scenarios/btp-subaccount-module?ref=67cb61948e19497377fb4e23f01dd301319c6907"
-  stage               = "TST"
-  team                = var.team
-  unit                = var.unit
-  unit_shortname      = var.unit_shortname
-  usage               = "USED_FOR_PRODUCTION"
+resource "btp_subaccount_role_collection_assignment" "subaccount_users" {
+  for_each             = toset("${var.emergency_admins}")
+  role_collection_name = "Subaccount Administrator"
+  subaccount_id        = btp_subaccount.project.id
+  user_name            = each.value
+}
+resource "btp_subaccount_entitlement" "entitlements" {
+  for_each      = { for index, entitlement in var.entitlements : index => entitlement }
+  plan_name     = each.value.plan
+  service_name  = each.value.name
+  subaccount_id = btp_subaccount.project.id
+}
+resource "btp_subaccount_security_settings" "sec_setting" {
+  access_token_validity                    = 7200
+  iframe_domains_list                      = "[https://www.sap.com]"
+  refresh_token_validity                   = 7200
+  subaccount_id                            = btp_subaccount.project.id
+  treat_users_with_same_email_as_same_user = true
 }

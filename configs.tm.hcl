@@ -1,14 +1,10 @@
 // Configure default Terraform version and default providers
 globals "terraform" {
-  version     = ">= 1.9.0"
-  version_dev = ">= 1.10.0"
+  version     = ">= 1.12.0"
+  version_dev = ">= 1.12.0"
 }
 
 globals "terraform" "providers" "btp" {
-  version     = "~> 1.8.0"
-  version_dev = "~> 1.8.0"
-}
-
-globals "terraform" "modules" "btp_subaccount_module" {
-  source = "github.com/btp-automation-scenarios/btp-subaccount-module?ref=67cb61948e19497377fb4e23f01dd301319c6907"
+  version     = "~> 1.15.0"
+  version_dev = "~> 1.15.0"
 }
