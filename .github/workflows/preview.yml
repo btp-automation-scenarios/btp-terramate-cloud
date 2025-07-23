@@ -42,7 +42,7 @@ jobs:
         id: list
         run: |
           terramate list --changed > changed-stacks.txt
-          echo "CHANGEDSTACKS=$(awk 'END { print NR }' changed-stacks.txt)" >> $GITHUB_ENV
+          echo "CHANGEDSTACKS=$(awk 'END { print NR }' changed-stacks.txt)" >> $GITHUB_OUTPUT
 
       - name: Initialize Terraform in changed stacks
         if: steps.list.outputs.CHANGEDSTACKS > 0
