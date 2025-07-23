@@ -40,10 +40,12 @@ jobs:
 
       - name: List changed stacks
         id: list
-        run: terramate list --changed
+        run: |
+          terramate list --changed > changed-stacks.txt
+          echo "CHANGEDSTACKS=$(cat changed-stacks.txt)" >> $GITHUB_ENV
 
       - name: Initialize Terraform in changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS != ''
         id: init
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
@@ -57,7 +59,7 @@ jobs:
            terraform init -lock-timeout=5m
 
       - name: Validate Terraform configuration in changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS != ''
         id: validate
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
@@ -71,7 +73,7 @@ jobs:
             terraform validate
 
       - name: Plan Terraform changes in changed stacks
-        if: steps.list.outputs.stdout
+        if: steps.list.outputs.CHANGEDSTACKS != ''
         id: plan
         run: |
           export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
