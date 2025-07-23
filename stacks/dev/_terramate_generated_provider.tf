@@ -9,9 +9,10 @@ terraform {
     }
   }
   backend "azurerm" {
-    container_name       = "sapcp-osaas-b8c39866-3cdb-4448-9128-7a7e85102e66-zrs"
+    container_name       = "terraformstate"
     key                  = "29300b60-f0bb-4dda-bb4a-f0320148b0ed.btptm.terraform.state"
-    storage_account_name = "sapcpnjc8cwjshgjsjfsswtl"
+    resource_group_name  = "TerraformStateStore"
+    storage_account_name = "terraformstate300477"
   }
 }
 provider "btp" {
