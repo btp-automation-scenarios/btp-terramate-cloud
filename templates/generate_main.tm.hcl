@@ -57,7 +57,7 @@ generate_hcl "_terramate_generated_main.tf" {
       treat_users_with_same_email_as_same_user = true
 
 
-      iframe_domains_list = "[https://www.sap.com]"
+      iframe_domains_list = ["https://www.sap.com"]
     }
   }
 }

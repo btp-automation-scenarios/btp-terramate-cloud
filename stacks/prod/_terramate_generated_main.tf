@@ -41,8 +41,10 @@ resource "btp_subaccount_entitlement" "entitlements" {
   subaccount_id = btp_subaccount.project.id
 }
 resource "btp_subaccount_security_settings" "sec_setting" {
-  access_token_validity                    = 7200
-  iframe_domains_list                      = "[https://www.sap.com]"
+  access_token_validity = 7200
+  iframe_domains_list = [
+    "https://www.sap.com",
+  ]
   refresh_token_validity                   = 7200
   subaccount_id                            = btp_subaccount.project.id
   treat_users_with_same_email_as_same_user = true
