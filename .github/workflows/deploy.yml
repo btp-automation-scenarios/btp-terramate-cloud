@@ -40,6 +40,7 @@ jobs:
         run: |
           terramate list --changed > changed-stacks.txt
           echo "CHANGEDSTACKS=$(awk 'END { print NR }' changed-stacks.txt)" >> $GITHUB_OUTPUT
+          rm -rf changed-stacks.txt
 
       - name: Run Terraform init in each changed stacks
         if: steps.list.outputs.CHANGEDSTACKS > 0
