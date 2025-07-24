@@ -42,7 +42,6 @@ jobs:
           export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
           terramate run \
             --parallel 1 \
-            --changed \
             -- \
             terraform init
 
@@ -55,7 +54,6 @@ jobs:
           export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
           terramate run \
             --parallel 3 \
-            --changed \
             --sync-deployment \
             -- \
             terraform destroy -input=false -auto-approve -lock-timeout=10m
