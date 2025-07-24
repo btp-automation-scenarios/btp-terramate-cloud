@@ -1,0 +1,63 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Destroy Deployment
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Install Terramate
+        uses: terramate-io/terramate-action@v2
+        with:
+         use_wrapper: "false"
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+          terraform_wrapper: false
+
+      - name: Run Terraform init in each stack
+        id: init
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 1 \
+            --changed \
+            -- \
+            terraform init
+
+      - name: Destroy all deployed resources
+        id: apply
+        run: |
+          export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+          export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+          export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+          export TF_VAR_globalaccount=${{ secrets.GLOBALACCOUNT }}
+          terramate run \
+            --parallel 3 \
+            --changed \
+            --sync-deployment \
+            -- \
+            terraform destroy -input=false -auto-approve -lock-timeout=10m
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
